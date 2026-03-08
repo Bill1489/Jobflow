@@ -13,6 +13,7 @@ from app.models.cv import CV, CVTemplate
 from app.models.user import User
 from app.services.cv_builder import cv_builder_service
 from app.services.cv_templates import get_all_templates, get_template
+from app.services.cv_parser import cv_parser
 from app.api.auth import get_current_user
 
 router = APIRouter(prefix="/api/v1/cvs", tags=["CVs"])
@@ -217,7 +218,7 @@ async def upload_cv(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Upload existing CV (PDF/DOCX)"""
+    """Upload existing CV (PDF/DOCX) and parse it"""
     # Validate file type
     allowed_types = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
     if file.content_type not in allowed_types:
@@ -232,11 +233,29 @@ async def upload_cv(
         content = await file.read()
         f.write(content)
     
-    # Create CV record
+    # Determine file type
+    file_type = "pdf" if "pdf" in file.content_type else "docx"
+    
+    # Parse CV
+    parsed_data = await cv_parser.parse_cv(file_path, file_type)
+    
+    # Get personal info or use defaults
+    personal_info = parsed_data.get('personal_info', {})
+    
+    # Create CV record with parsed data
     cv = CV(
         user_id=current_user.id,
-        full_name=current_user.email.split("@")[0],  # Placeholder
-        email=current_user.email,
+        full_name=personal_info.get('full_name', current_user.email.split("@")[0]),
+        email=personal_info.get('email', current_user.email),
+        phone=personal_info.get('phone', ''),
+        location=personal_info.get('location', ''),
+        linkedin_url=personal_info.get('linkedin_url', ''),
+        portfolio_url=personal_info.get('portfolio_url', ''),
+        summary=parsed_data.get('summary', ''),
+        experience=parsed_data.get('experience', []),
+        education=parsed_data.get('education', []),
+        skills=parsed_data.get('skills', []),
+        certifications=parsed_data.get('certifications', []),
         file_path=file_path,
         is_ai_generated=False
     )
@@ -245,10 +264,64 @@ async def upload_cv(
     db.commit()
     db.refresh(cv)
     
+    # Get improvement suggestions
+    suggestions = cv_parser.suggest_improvements({
+        'personal_info': personal_info,
+        'summary': parsed_data.get('summary', ''),
+        'experience': parsed_data.get('experience', []),
+        'skills': parsed_data.get('skills', [])
+    })
+    
     return {
         "cv_id": cv.id,
-        "file_path": file_path,
-        "message": "CV uploaded successfully. You can now edit the parsed content."
+        "message": "CV uploaded and parsed successfully!",
+        "parsed_data": {
+            "personal_info": personal_info,
+            "summary": parsed_data.get('summary', ''),
+            "experience": parsed_data.get('experience', []),
+            "education": parsed_data.get('education', []),
+            "skills": parsed_data.get('skills', []),
+            "suggestions": suggestions
+        },
+        "next_step": "Review and edit the parsed information, then we'll improve it with AI"
+    }
+
+
+@router.post("/upload/parse")
+async def parse_uploaded_cv(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Parse uploaded CV without saving (preview before save)"""
+    # Validate file type
+    allowed_types = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only PDF and DOCX files are allowed")
+    
+    # Save temporarily
+    upload_dir = f"uploads/cvs/{current_user.id}/temp"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = f"{upload_dir}/{file.filename}"
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    # Determine file type
+    file_type = "pdf" if "pdf" in file.content_type else "docx"
+    
+    # Parse CV
+    parsed_data = await cv_parser.parse_cv(file_path, file_type)
+    
+    # Get improvement suggestions
+    suggestions = cv_parser.suggest_improvements(parsed_data)
+    
+    return {
+        "parsed_data": parsed_data,
+        "suggestions": suggestions,
+        "improvements_available": True,
+        "message": "CV parsed! Review the extracted info below, then we'll improve it with AI."
     }
 
 
