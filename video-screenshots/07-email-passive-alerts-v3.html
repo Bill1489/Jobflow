@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passive Job Alerts - JobScale</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+            --purple-50: #faf5ff; --purple-100: #f3e8ff; --purple-500: #a855f7; --purple-600: #9333ea;
+            --emerald-50: #ecfdf5; --emerald-500: #10b981;
+            --shadow: 0 20px 25px -5px rgba(15,23,42,0.1);
+            --radius: 12px; --radius-lg: 16px; --radius-xl: 20px;
+        }
+        
+        body { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: var(--slate-50); padding: 48px 24px; -webkit-font-smoothing: antialiased; }
+        
+        .email-container { max-width: 540px; margin: 0 auto; background: #fff; border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }
+        
+        .header { padding: 40px 36px 32px 36px; border-bottom: 1px solid var(--slate-100); }
+        .eyebrow { font-size: 11px; font-weight: 700; color: var(--purple-500); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--slate-900); line-height: 1.3; }
+        
+        .content { padding: 36px; }
+        .intro { font-size: 15px; color: var(--slate-600); margin-bottom: 28px; line-height: 1.6; }
+        
+        .alert-banner { background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 24px; border: 1px solid var(--purple-200, #e9d5ff); display: flex; align-items: flex-start; gap: 14px; }
+        .alert-icon { width: 36px; height: 36px; background: var(--purple-500); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+        .alert-text { font-size: 14px; color: var(--purple-800, #6b21a8); line-height: 1.6; }
+        .alert-text strong { font-weight: 600; }
+        
+        .section-title { font-size: 13px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        
+        .job-card { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px; transition: all 0.2s; position: relative; overflow: hidden; }
+        .job-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--purple-500), var(--purple-400)); }
+        .job-card:hover { border-color: var(--slate-300); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        .job-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .job-title { font-size: 16px; font-weight: 600; color: var(--slate-900); margin-bottom: 6px; }
+        .job-salary { font-size: 15px; font-weight: 700; color: var(--purple-600); white-space: nowrap; }
+        
+        .job-company { font-size: 13px; color: var(--slate-500); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .job-company svg { width: 14px; height: 14px; opacity: 0.6; }
+        
+        .job-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .job-tag { font-size: 12px; font-weight: 500; padding: 4px 10px; background: var(--slate-50); border-radius: 100px; color: var(--slate-600); }
+        .job-tag.highlight { background: var(--purple-50); color: var(--purple-700); }
+        
+        .job-stats { display: flex; gap: 20px; padding-top: 14px; border-top: 1px solid var(--slate-100); }
+        .stat-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--slate-500); }
+        .stat-item svg { width: 14px; height: 14px; opacity: 0.6; }
+        
+        .match-badge { position: absolute; top: 20px; right: 20px; background: var(--emerald-50); color: var(--emerald-600); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 100px; display: flex; align-items: center; gap: 4px; }
+        
+        .cta-section { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--slate-100); }
+        .cta-button { display: block; width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-500)); color: #fff; text-decoration: none; padding: 16px; font-size: 14px; font-weight: 600; border-radius: var(--radius); text-align: center; margin-bottom: 12px; transition: all 0.2s; }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(147,51,234,0.3); }
+        
+        .settings-link { display: block; text-align: center; font-size: 13px; color: var(--slate-500); text-decoration: none; padding: 12px; }
+        .settings-link:hover { color: var(--slate-700); }
+        
+        .footer { padding: 28px 36px; background: var(--slate-50); border-top: 1px solid var(--slate-200); }
+        .footer-note { font-size: 12px; color: var(--slate-500); margin-bottom: 12px; line-height: 1.6; }
+        .footer-brand { font-size: 12px; color: var(--slate-500); margin-bottom: 8px; font-weight: 500; }
+        .footer-link { font-size: 12px; color: var(--slate-400); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="eyebrow">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                Passive Alert
+            </div>
+            <h1 class="title">3 Roles Worth Considering</h1>
+        </div>
+
+        <div class="content">
+            <p class="intro">
+                We found 3 roles that are 20%+ better than your current position. These are hand-picked based on your career goals and market position.
+            </p>
+
+            <div class="alert-banner">
+                <div class="alert-icon">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div class="alert-text">
+                    <strong>Why these roles?</strong> Each offers 20%+ salary increase, senior-level title, and aligns with your goal of reaching £95-100K by Q3 2026.
+                </div>
+            </div>
+
+            <div class="section-title">This Week's Picks</div>
+
+            <div class="job-card">
+                <div class="match-badge">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    94% match
+                </div>
+                <div class="job-title">Senior Software Engineer</div>
+                <div class="job-company">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Revolut · London, Hybrid
+                </div>
+                <div class="job-tags">
+                    <span class="job-tag highlight">+31% salary</span>
+                    <span class="job-tag">Senior Level</span>
+                    <span class="job-tag">Payments</span>
+                    <span class="job-tag">Series E</span>
+                </div>
+                <div class="job-stats">
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        £105,000
+                    </div>
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        3.2 miles
+                    </div>
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Posted 2d ago
+                    </div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="match-badge">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    91% match
+                </div>
+                <div class="job-title">Senior Backend Engineer</div>
+                <div class="job-company">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Wise · London, Remote
+                </div>
+                <div class="job-tags">
+                    <span class="job-tag highlight">+22% salary</span>
+                    <span class="job-tag">Senior Level</span>
+                    <span class="job-tag">Fintech</span>
+                    <span class="job-tag">Public</span>
+                </div>
+                <div class="job-stats">
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        £98,000
+                    </div>
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Remote
+                    </div>
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Posted 4d ago
+                    </div>
+                </div>
+            </div>
+
+            <div class="job-card">
+                <div class="match-badge">
+                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    88% match
+                </div>
+                <div class="job-title">Staff Software Engineer</div>
+                <div class="job-company">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Checkout.com · London, Hybrid
+                </div>
+                <div class="job-tags">
+                    <span class="job-tag highlight">+38% salary</span>
+                    <span class="job-tag">Staff Level</span>
+                    <span class="job-tag">Payments</span>
+                    <span class="job-tag">Series D</span>
+                </div>
+                <div class="job-stats">
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        £110,000
+                    </div>
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        2.8 miles
+                    </div>
+                    <div class="stat-item">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Posted 1d ago
+                    </div>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <a href="#" class="cta-button">View Full Details</a>
+                <a href="#" class="settings-link">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Adjust alert preferences
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p class="footer-note">
+                These alerts are exclusive to CAREER tier. We only send roles that are 20%+ better than your current position — no spam, no noise.
+            </p>
+            <div class="footer-brand">JobScale · Career Intelligence Platform</div>
+            <a href="#" class="footer-link">Manage email preferences</a>
+        </div>
+    </div>
+</body>
+</html>

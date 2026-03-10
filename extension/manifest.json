@@ -1,52 +1,68 @@
 {
   "manifest_version": 3,
-  "name": "JobScale - AI Job Applications",
+  "name": "JobScale Auto-Apply",
   "version": "1.0.0",
-  "description": "Apply to jobs with AI-powered CV tailoring and cover letters. One-click applications from any job board.",
+  "description": "Automatically apply to jobs from your JobScale dashboard with one click",
   "permissions": [
-    "activeTab",
-    "storage",
     "tabs",
-    "contextMenus"
+    "storage",
+    "notifications",
+    "scripting",
+    "cookies"
   ],
   "host_permissions": [
-    "https://*.linkedin.com/*",
     "https://*.indeed.com/*",
-    "https://*.glassdoor.com/*",
+    "https://*.linkedin.com/*",
     "https://*.greenhouse.io/*",
     "https://*.lever.co/*",
-    "https://*.workable.com/*",
-    "http://localhost:3000/*"
+    "https://api.jobscale.com/*"
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    },
-    "default_title": "JobScale"
-  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "JobScale Auto-Apply"
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://*.linkedin.com/jobs/*",
-        "https://*.indeed.com/*",
-        "https://*.glassdoor.com/*",
-        "https://jobs.ashbyhq.com/*",
-        "https://*.greenhouse.io/*",
-        "https://*.lever.co/*"
-      ],
-      "js": ["content.js"],
-      "css": ["styles.css"]
+      "matches": ["https://*.indeed.com/*"],
+      "js": ["content/indeed-adapter.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.linkedin.com/*"],
+      "js": ["content/linkedin-adapter.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.greenhouse.io/*"],
+      "js": ["content/greenhouse-adapter.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://*.lever.co/*"],
+      "js": ["content/lever-adapter.js"],
+      "run_at": "document_idle"
     }
   ],
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  }
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content/*.js", "icons/*.png"],
+      "matches": ["https://*.indeed.com/*", "https://*.linkedin.com/*", "https://*.greenhouse.io/*", "https://*.lever.co/*"]
+    }
+  ]
 }

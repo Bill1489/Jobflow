@@ -27,14 +27,14 @@ from app.database import SessionLocal
 router = APIRouter()
 
 # Stripe setup (use environment variable in production)
-stripe.api_key = settings.OPENAI_API_KEY  # TODO: Add STRIPE_SECRET_KEY to config
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
-# Plan IDs (replace with actual Stripe product IDs)
+# Plan IDs (replace with actual Stripe product IDs in production)
 PLAN_IDS = {
-    "pro_monthly": "price_pro_monthly",
-    "pro_yearly": "price_pro_yearly",
-    "premium_monthly": "price_premium_monthly",
-    "premium_yearly": "price_premium_yearly",
+    "pro_monthly": "price_pro_monthly_29",
+    "pro_yearly": "price_pro_yearly_290",
+    "career_monthly": "price_career_monthly_19",
+    "career_annual": "price_career_annual_149",
 }
 
 
@@ -101,6 +101,61 @@ async def create_portal_session(
     raise HTTPException(status_code=501, detail="Portal not configured - add customer_id to user model")
 
 
+class UpgradeRequest(BaseModel):
+    plan: str  # "pro" or "career"
+    cycle: Optional[str] = "monthly"  # "monthly" or "annual"
+    source: Optional[str] = None
+
+
+class UpgradeResponse(BaseModel):
+    checkout_url: str
+
+
+@router.post("/upgrade", response_model=UpgradeResponse)
+async def upgrade_plan(
+    request: UpgradeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(lambda: SessionLocal()),
+):
+    """Create Stripe checkout session for plan upgrade"""
+    
+    # Determine price ID
+    if request.plan == "pro":
+        price_id = PLAN_IDS["pro_monthly"]
+    elif request.plan == "career":
+        if request.cycle == "annual":
+            price_id = PLAN_IDS["career_annual"]
+        else:
+            price_id = PLAN_IDS["career_monthly"]
+    else:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    try:
+        # Create Stripe Checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price": price_id,
+                "quantity": 1,
+            }],
+            mode="subscription",
+            success_url=f"{settings.FRONTEND_URL}/billing/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/billing/cancel",
+            metadata={
+                "user_id": str(current_user.id),
+                "plan": request.plan,
+                "cycle": request.cycle or "monthly",
+                "source": request.source or "",
+            },
+            customer_email=current_user.email,
+            customer_creation="always" if not current_user.stripe_customer_id else None,
+        )
+        
+        return UpgradeResponse(checkout_url=session.url)
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/subscription", response_model=SubscriptionResponse)
 async def get_subscription(
     current_user: User = Depends(get_current_user),
@@ -108,7 +163,7 @@ async def get_subscription(
 ):
     """Get current user's subscription status"""
     # In production, fetch from Stripe using customer_id
-    # For now, return free tier
+    # For now, return from user model
     
     # Count applications this month
     from app.models.application import Application
@@ -120,12 +175,19 @@ async def get_subscription(
         Application.created_at >= month_start,
     ).count()
     
+    # Determine limit based on plan
+    plan = current_user.subscription_plan or "free"
+    if plan == "free":
+        limit = 5
+    else:
+        limit = 999999  # Unlimited
+    
     return SubscriptionResponse(
-        status="active",  # Would check Stripe in production
-        plan="free",
+        status=current_user.subscription_status or "active",
+        plan=plan,
         current_period_end=None,
         applications_used=apps_count,
-        applications_limit=5,  # Free tier limit
+        applications_limit=limit,
     )
 
 

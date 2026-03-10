@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annual Career Report - JobScale</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            padding: 48px 24px;
+        }
+        .report-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .cover {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #ffffff;
+            padding: 80px 64px;
+            text-align: center;
+        }
+        .cover-year {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .cover-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 48px;
+            color: #94a3b8;
+        }
+        .cover-name {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+        .section {
+            padding: 48px 64px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+        .career-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        .timeline-year {
+            min-width: 80px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .timeline-content {
+            flex: 1;
+            padding-left: 24px;
+            border-left: 2px solid #14b8a6;
+        }
+        .timeline-role {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .timeline-company {
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .timeline-salary {
+            font-size: 16px;
+            font-weight: 600;
+            color: #14b8a6;
+        }
+        .timeline-growth {
+            font-size: 14px;
+            color: #16a34a;
+            margin-top: 4px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 32px;
+            background: #f8fafc;
+        }
+        .stat-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: #14b8a6;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .skills-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .skill-pill {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 8px 16px;
+            border-radius: 0;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid #86efac;
+        }
+        .cta-section {
+            background: #0f172a;
+            color: #ffffff;
+            padding: 48px 64px;
+            text-align: center;
+        }
+        .cta-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .cta-text {
+            font-size: 16px;
+            color: #94a3b8;
+            margin-bottom: 32px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #14b8a6;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 40px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- Cover -->
+        <div class="cover">
+            <div class="cover-year">2026</div>
+            <div class="cover-title">Annual Career Report</div>
+            <div class="cover-name">Alex Chen · Software Engineer</div>
+        </div>
+
+        <!-- Career Timeline -->
+        <div class="section">
+            <div class="section-title">Career Trajectory</div>
+            <div class="career-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-year">2025</div>
+                    <div class="timeline-content">
+                        <div class="timeline-role">Software Engineer</div>
+                        <div class="timeline-company">Stripe · London, UK</div>
+                        <div class="timeline-salary">£80,000</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2026</div>
+                    <div class="timeline-content">
+                        <div class="timeline-role">Senior Software Engineer</div>
+                        <div class="timeline-company">GitLab · Remote</div>
+                        <div class="timeline-salary">£100,000</div>
+                        <div class="timeline-growth">+25% salary growth</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-year">2027</div>
+                    <div class="timeline-content">
+                        <div class="timeline-role">Staff Software Engineer</div>
+                        <div class="timeline-company">Projected</div>
+                        <div class="timeline-salary">£130,000</div>
+                        <div class="timeline-growth">+30% projected growth</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Stats -->
+        <div class="section">
+            <div class="section-title">Year in Review</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">25%</div>
+                    <div class="stat-label">Salary Growth</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Skills Gained</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Promotions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Gained -->
+        <div class="section">
+            <div class="section-title">Skills Developed</div>
+            <div class="skills-section">
+                <span class="skill-pill">System Design</span>
+                <span class="skill-pill">Team Leadership</span>
+                <span class="skill-pill">Python</span>
+                <span class="skill-pill">Kubernetes</span>
+                <span class="skill-pill">Mentoring</span>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <div class="cta-title">Ready for Your 2027 Report?</div>
+            <div class="cta-text">Track your career with JobScale and see your growth year over year.</div>
+            <a href="#" class="cta-button">Start Your Free Trial</a>
+        </div>
+    </div>
+</body>
+</html>

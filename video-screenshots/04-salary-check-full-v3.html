@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Check - JobScale</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1; --slate-400: #94a3b8; --slate-500: #64748b;
+            --slate-600: #475569; --slate-700: #334155; --slate-800: #1e293b; --slate-900: #0f172a;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8;
+            --emerald-50: #ecfdf5; --emerald-500: #10b981;
+            --amber-50: #fffbeb; --amber-100: #fef3c7; --amber-500: #f59e0b;
+            --shadow: 0 10px 15px -3px rgba(15,23,42,0.08); --shadow-lg: 0 20px 25px -5px rgba(15,23,42,0.1);
+            --radius: 12px; --radius-lg: 16px; --radius-xl: 20px;
+        }
+        
+        body { font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background: var(--slate-50); -webkit-font-smoothing: antialiased; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #fff; border-right: 1px solid var(--slate-200); padding: 20px 16px; }
+        .brand { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 32px; }
+        .brand-mark { width: 36px; height: 36px; background: linear-gradient(135deg, var(--blue-600), var(--blue-500)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; }
+        .brand-name { font-size: 18px; font-weight: 700; color: var(--slate-900); }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; color: var(--slate-600); text-decoration: none; font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .nav-link.active { background: var(--blue-50); color: var(--blue-600); font-weight: 600; }
+        .nav-icon { width: 18px; height: 18px; opacity: 0.7; }
+        
+        .main { margin-left: 260px; min-height: 100vh; }
+        .topbar { background: #fff; border-bottom: 1px solid var(--slate-200); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .breadcrumb { font-size: 14px; color: var(--slate-500); }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-100), var(--blue-200)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--blue-700); }
+        
+        .page { padding: 40px; }
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.7px; color: var(--slate-900); margin-bottom: 8px; }
+        .page-description { font-size: 15px; color: var(--slate-500); }
+        
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 20px; }
+        .stat-label { font-size: 12px; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--slate-900); margin-bottom: 8px; }
+        .stat-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 100px; }
+        .stat-delta.positive { background: var(--emerald-50); color: var(--emerald-500); }
+        .stat-delta.negative { background: var(--amber-50); color: var(--amber-500); }
+        
+        .content-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .card { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius-lg); overflow: hidden; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid var(--slate-100); display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 15px; font-weight: 600; color: var(--slate-900); }
+        .card-body { padding: 24px; }
+        
+        .salary-comparison { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .comparison-card { background: linear-gradient(135deg, var(--slate-50), var(--slate-100)); border-radius: var(--radius-lg); padding: 24px; text-align: center; border: 1px solid var(--slate-200); }
+        .comparison-card.highlight { background: linear-gradient(135deg, var(--blue-600), var(--blue-500)); border: none; }
+        .comparison-card.highlight .comparison-label, .comparison-card.highlight .comparison-value { color: white; }
+        .comparison-label { font-size: 12px; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .comparison-value { font-size: 32px; font-weight: 700; color: var(--slate-900); letter-spacing: -1px; }
+        .comparison-sub { font-size: 13px; color: var(--slate-400); margin-top: 8px; }
+        .comparison-card.highlight .comparison-sub { color: var(--blue-100); }
+        
+        .percentile-bar { margin: 24px 0; }
+        .percentile-label { font-size: 13px; font-weight: 600; color: var(--slate-600); margin-bottom: 12px; }
+        .bar-track { height: 12px; background: var(--slate-200); border-radius: 100px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--blue-600), var(--blue-500)); border-radius: 100px; width: 40%; }
+        .bar-marker { position: absolute; top: -4px; right: 60%; width: 20px; height: 20px; background: var(--slate-900); border: 3px solid #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .bar-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--slate-400); }
+        
+        .similar-roles-table { width: 100%; border-collapse: collapse; }
+        .similar-roles-table th { text-align: left; padding: 14px 16px; font-size: 11px; font-weight: 600; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--slate-200); }
+        .similar-roles-table td { padding: 16px; font-size: 14px; color: var(--slate-700); border-bottom: 1px solid var(--slate-100); }
+        .similar-roles-table tr:last-child td { border-bottom: none; }
+        .company-logo { width: 32px; height: 32px; background: var(--slate-100); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--slate-600); margin-right: 10px; }
+        .role-name { font-weight: 600; color: var(--slate-900); }
+        .role-location { font-size: 13px; color: var(--slate-400); }
+        .salary-highlight { font-weight: 700; color: var(--blue-600); }
+        
+        .action-bar { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { padding: 12px 20px; border-radius: var(--radius); font-size: 14px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, var(--blue-600), var(--blue-500)); color: white; box-shadow: 0 4px 14px rgba(59,130,246,0.35); }
+        .btn-outline { background: transparent; color: var(--slate-700); border: 1.5px solid var(--slate-200); }
+        
+        .insight-box { background: linear-gradient(135deg, var(--amber-50), var(--amber-100)); border-radius: var(--radius-lg); padding: 20px 24px; border: 1px solid var(--amber-200, #fcd34d); margin-bottom: 24px; }
+        .insight-title { font-size: 13px; font-weight: 700; color: var(--amber-600, #d97706); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .insight-text { font-size: 14px; color: var(--amber-700, #b45309); line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">J</div>
+            <span class="brand-name">JobScale</span>
+        </div>
+        <nav>
+            <a href="#" class="nav-link"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>Dashboard</a>
+            <a href="#" class="nav-link"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>Jobs</a>
+            <a href="#" class="nav-link active"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>Salary Check</a>
+            <a href="#" class="nav-link"><svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Analytics</a>
+        </nav>
+    </aside>
+    
+    <main class="main">
+        <div class="topbar">
+            <div class="breadcrumb">Career / Salary Check / Q1 2026</div>
+            <div class="avatar">AC</div>
+        </div>
+        
+        <div class="page">
+            <div class="page-header">
+                <h1 class="page-title">Q1 2026 Salary Check</h1>
+                <p class="page-description">Market benchmarking for Software Engineer in London, UK</p>
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Your Salary</div>
+                    <div class="stat-value">£80,000</div>
+                    <div class="stat-delta negative">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                        Below market
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Market Average</div>
+                    <div class="stat-value">£92,500</div>
+                    <div class="stat-delta positive">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        +15.6% higher
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Top 25%</div>
+                    <div class="stat-value">£115,000</div>
+                    <div class="stat-delta positive">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6-6"/></svg>
+                        +43.8% higher
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Your Percentile</div>
+                    <div class="stat-value">40th</div>
+                    <div class="stat-delta negative">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                        10% below median
+                    </div>
+                </div>
+            </div>
+            
+            <div class="insight-box">
+                <div class="insight-title">💡 Market Insight</div>
+                <div class="insight-text">
+                    Based on 847 similar roles in London, you're earning £12,500 below market average. 
+                    With 18 months tenure and strong performance, you're well-positioned for a £90-95K range in your next role.
+                </div>
+            </div>
+            
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Similar Roles (30)</h2>
+                        <a href="#" style="font-size:13px;color:var(--blue-600);text-decoration:none;">View all</a>
+                    </div>
+                    <div class="card-body" style="padding:0;">
+                        <table class="similar-roles-table">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Role</th>
+                                    <th>Location</th>
+                                    <th>Salary</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="company-logo">R</span>Revolut</td>
+                                    <td><div class="role-name">Senior Software Engineer</div></td>
+                                    <td class="role-location">London, Hybrid</td>
+                                    <td class="salary-highlight">£105,000</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="company-logo">M</span>Monzo</td>
+                                    <td><div class="role-name">Software Engineer II</div></td>
+                                    <td class="role-location">London, Hybrid</td>
+                                    <td class="salary-highlight">£95,000</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="company-logo">W</span>Wise</td>
+                                    <td><div class="role-name">Backend Engineer</div></td>
+                                    <td class="role-location">London, Remote</td>
+                                    <td class="salary-highlight">£98,000</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="company-logo">C</span>Checkout.com</td>
+                                    <td><div class="role-name">Software Engineer</div></td>
+                                    <td class="role-location">London, Hybrid</td>
+                                    <td class="salary-highlight">£92,000</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="company-logo">K</span>Klarna</td>
+                                    <td><div class="role-name">Backend Developer</div></td>
+                                    <td class="role-location">London, Remote</td>
+                                    <td class="salary-highlight">£88,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card" style="margin-bottom:16px;">
+                        <div class="card-header">
+                            <h2 class="card-title">Percentile Breakdown</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="percentile-bar">
+                                <div class="percentile-label">Where You Stand</div>
+                                <div class="bar-track">
+                                    <div class="bar-fill"></div>
+                                    <div class="bar-marker"></div>
+                                </div>
+                                <div class="bar-labels">
+                                    <span>0%</span>
+                                    <span>25%</span>
+                                    <span>50%</span>
+                                    <span>75%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+                            <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--slate-100);">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                                    <span style="font-size:13px;color:var(--slate-500);">Bottom 25%</span>
+                                    <span style="font-size:14px;font-weight:600;color:var(--slate-700);">£65-75K</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                                    <span style="font-size:13px;color:var(--slate-500);">25-50% (You)</span>
+                                    <span style="font-size:14px;font-weight:600;color:var(--blue-600);">£75-85K</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                                    <span style="font-size:13px;color:var(--slate-500);">50-75%</span>
+                                    <span style="font-size:14px;font-weight:600;color:var(--slate-700);">£85-105K</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;">
+                                    <span style="font-size:13px;color:var(--slate-500);">Top 25%</span>
+                                    <span style="font-size:14px;font-weight:600;color:var(--slate-700);">£105K+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">Action Plan</h2>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom:16px;">
+                                <div style="font-size:13px;font-weight:600;color:var(--slate-700);margin-bottom:6px;">🎯 Negotiate Current Role</div>
+                                <div style="font-size:13px;color:var(--slate-500);">Request £90-95K based on market data + 18mo tenure</div>
+                            </div>
+                            <div style="margin-bottom:16px;">
+                                <div style="font-size:13px;font-weight:600;color:var(--slate-700);margin-bottom:6px;">💼 Explore Senior Roles</div>
+                                <div style="font-size:13px;color:var(--slate-500);">12 matching senior roles at £95-110K</div>
+                            </div>
+                            <div class="action-bar">
+                                <a href="#" class="btn btn-primary" style="flex:1;justify-content:center;">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    Browse Roles
+                                </a>
+                                <a href="#" class="btn btn-outline">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

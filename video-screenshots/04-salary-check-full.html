@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Check Full - JobScale</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            padding: 48px 24px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header {
+            padding: 48px 48px 32px 48px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .eyebrow {
+            font-size: 14px;
+            font-weight: 600;
+            color: #dc2626;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .content { padding: 48px; }
+        .intro {
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 32px;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .comparison-card {
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+        }
+        .comparison-card.market {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        .card-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .card-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .comparison-card.market .card-value {
+            color: #dc2626;
+        }
+        .alert-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .alert-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+        .alert-text {
+            font-size: 15px;
+            color: #991b1b;
+        }
+        .percentile-section {
+            margin-bottom: 32px;
+        }
+        .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 12px;
+        }
+        .percentile-bar {
+            background: #e2e8f0;
+            height: 8px;
+            margin-bottom: 8px;
+        }
+        .percentile-fill {
+            background: #0f172a;
+            width: 40%;
+            height: 100%;
+        }
+        .percentile-text {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .benchmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .benchmark-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+        }
+        .benchmark-label {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .benchmark-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #0f172a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 40px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .footer-note {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="eyebrow">Market Alert</div>
+            <h1 class="title">Your salary is below market average</h1>
+        </div>
+
+        <div class="content">
+            <p class="intro">
+                Here's how your compensation compares to the market for your role, location, and experience level.
+            </p>
+
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="card-label">Your Salary</div>
+                    <div class="card-value">£80,000</div>
+                </div>
+                <div class="comparison-card market">
+                    <div class="card-label">Market Average</div>
+                    <div class="card-value">£92,000</div>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <div class="alert-title">You're underpaid by 13%</div>
+                <div class="alert-text">That's £12,000 less than market average per year</div>
+            </div>
+
+            <div class="percentile-section">
+                <div class="section-label">Market Position</div>
+                <div class="percentile-bar">
+                    <div class="percentile-fill"></div>
+                </div>
+                <div class="percentile-text">You're in the top 40% of earners for your role</div>
+            </div>
+
+            <div class="benchmarks-grid">
+                <div class="benchmark-card">
+                    <div class="benchmark-label">Top 25%</div>
+                    <div class="benchmark-value">£105,000</div>
+                </div>
+                <div class="benchmark-card">
+                    <div class="benchmark-label">Top 10%</div>
+                    <div class="benchmark-value">£120,000</div>
+                </div>
+            </div>
+
+            <a href="#" class="cta-button">View detailed analysis</a>
+
+            <p class="footer-note">Next review: Q2 2026</p>
+        </div>
+    </div>
+</body>
+</html>

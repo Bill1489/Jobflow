@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Check Email - JobScale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            line-height: 1.6;
+            padding: 48px 24px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header {
+            padding: 48px 48px 32px 48px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .eyebrow {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .content {
+            padding: 48px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 24px;
+        }
+        .body-text {
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 32px;
+        }
+        .salary-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+        .card-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .salary-large {
+            font-size: 42px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .market-card {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .market-item {
+            padding-bottom: 24px;
+        }
+        .market-label {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .market-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        .similar-roles {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .similar-value {
+            font-size: 16px;
+            color: #475569;
+        }
+        .insight-box {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            padding: 20px 24px;
+            margin-bottom: 32px;
+        }
+        .insight-text {
+            font-size: 15px;
+            color: #92400e;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #0f172a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 40px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+        .features-section {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 32px;
+        }
+        .features-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .feature-item {
+            font-size: 15px;
+            color: #334155;
+        }
+        .pricing-note {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .footer {
+            padding: 32px 48px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer-brand {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .footer-link {
+            font-size: 13px;
+            color: #94a3b8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="eyebrow">Quarterly Salary Check</div>
+            <h1 class="title">Your Q1 2026 Salary Check</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting">Hi Alex,</p>
+            
+            <p class="body-text">
+                It's time for your quarterly salary check. We've analyzed market data for your role and location.
+            </p>
+
+            <div class="salary-card">
+                <div class="card-label">Your Current Salary</div>
+                <div class="salary-large">£80,000</div>
+            </div>
+
+            <div class="market-card">
+                <div class="card-label">Market Benchmark</div>
+                <div class="market-grid">
+                    <div class="market-item">
+                        <div class="market-label">Market Average</div>
+                        <div class="market-value">Available with CAREER</div>
+                    </div>
+                    <div class="market-item">
+                        <div class="market-label">Top 25%</div>
+                        <div class="market-value">Available with CAREER</div>
+                    </div>
+                </div>
+                <div class="similar-roles">Similar Roles</div>
+                <div class="similar-value">3 roles with salary data</div>
+            </div>
+
+            <div class="insight-box">
+                <p class="insight-text">
+                    <strong>Preliminary analysis:</strong> You may be below market average
+                </p>
+            </div>
+
+            <a href="#" class="cta-button">View full salary report</a>
+
+            <div class="features-section">
+                <div class="features-title">CAREER includes:</div>
+                <div class="features-grid">
+                    <div class="feature-item">✓ 4 salary checks per year</div>
+                    <div class="feature-item">✓ Full market benchmarks</div>
+                    <div class="feature-item">✓ Similar roles with salaries</div>
+                    <div class="feature-item">✓ Promotion alerts</div>
+                    <div class="feature-item">✓ Passive job alerts</div>
+                    <div class="feature-item">✓ Annual career report</div>
+                </div>
+            </div>
+
+            <p class="pricing-note">$12.42/month when billed annually</p>
+        </div>
+
+        <div class="footer">
+            <div class="footer-brand">JobScale · Career Intelligence Platform</div>
+            <a href="#" class="footer-link">Manage email preferences</a>
+        </div>
+    </div>
+</body>
+</html>

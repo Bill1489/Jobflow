@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passive Job Alerts Email - JobScale</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            padding: 48px 24px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header {
+            padding: 48px 48px 32px 48px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .eyebrow {
+            font-size: 14px;
+            font-weight: 600;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .content { padding: 48px; }
+        .greeting {
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 32px;
+        }
+        .intro-box {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            padding: 20px 24px;
+            margin-bottom: 32px;
+        }
+        .intro-text {
+            font-size: 15px;
+            color: #166534;
+        }
+        .jobs-section {
+            margin-bottom: 32px;
+        }
+        .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 16px;
+        }
+        .job-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px 24px;
+            margin-bottom: 12px;
+            border-left: 3px solid #14b8a6;
+        }
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .job-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .job-salary {
+            font-size: 18px;
+            font-weight: 700;
+            color: #16a34a;
+        }
+        .job-company {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .job-match {
+            font-size: 13px;
+            color: #14b8a6;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .cta-button {
+            display: inline-block;
+            background: #0f172a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 16px 40px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .footer-note {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #64748b;
+            font-style: italic;
+        }
+        .footer {
+            padding: 32px 48px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer-brand {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .footer-link {
+            font-size: 13px;
+            color: #94a3b8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="eyebrow">Curated Opportunities</div>
+            <h1 class="title">3 roles this week</h1>
+        </div>
+
+        <div class="content">
+            <p class="greeting">
+                We found 3 exceptional opportunities this week. These roles are significantly better than your current position.
+            </p>
+
+            <div class="intro-box">
+                <p class="intro-text">
+                    <strong>Only showing roles 20%+ better</strong> than your current £80,000 salary
+                </p>
+            </div>
+
+            <div class="jobs-section">
+                <div class="section-label">This Week's Opportunities</div>
+
+                <div class="job-card">
+                    <div class="job-header">
+                        <div class="job-title">Senior Software Engineer</div>
+                        <div class="job-salary">£105,000</div>
+                    </div>
+                    <div class="job-company">GitLab · Remote</div>
+                    <div class="job-match">94% match · +31% vs current</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-header">
+                        <div class="job-title">Lead Developer</div>
+                        <div class="job-salary">£115,000</div>
+                    </div>
+                    <div class="job-company">Stripe · London, UK</div>
+                    <div class="job-match">91% match · +44% vs current</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-header">
+                        <div class="job-title">Staff Engineer</div>
+                        <div class="job-salary">£130,000</div>
+                    </div>
+                    <div class="job-company">Airbnb · Remote (US)</div>
+                    <div class="job-match">87% match · +62% vs current</div>
+                </div>
+            </div>
+
+            <a href="#" class="cta-button">View all opportunities</a>
+
+            <p class="footer-note">
+                We only send roles that are genuinely better than your current position. Quality over quantity.
+            </p>
+        </div>
+
+        <div class="footer">
+            <div class="footer-brand">JobScale · Career Intelligence Platform</div>
+            <a href="#" class="footer-link">Manage email preferences</a>
+        </div>
+    </div>
+</body>
+</html>

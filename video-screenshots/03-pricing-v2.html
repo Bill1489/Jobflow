@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - JobScale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #0f172a;
+            --accent: #0ea5e9;
+            --accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+            --success: #10b981;
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --radius: 20px;
+            --radius-sm: 12px;
+        }
+        
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 24px;
+        }
+        
+        .header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 80px;
+        }
+        
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 56px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .toggle-label.active {
+            color: var(--text);
+        }
+        
+        .toggle {
+            position: relative;
+            width: 56px;
+            height: 32px;
+            background: var(--border);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .toggle.active {
+            background: var(--accent);
+        }
+        
+        .toggle-knob {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+        
+        .toggle.active .toggle-knob {
+            transform: translateX(24px);
+        }
+        
+        .save-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--success);
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            align-items: stretch;
+            margin-bottom: 80px;
+        }
+        
+        .plan-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 40px 32px;
+            border: 1px solid var(--border);
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .plan-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .plan-card.featured {
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .plan-card.featured .plan-name,
+        .plan-card.featured .plan-description,
+        .plan-card.featured .price-amount,
+        .plan-card.featured .price-period,
+        .plan-card.featured .feature-item {
+            color: white;
+        }
+        
+        .plan-card.featured .feature-icon.x {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .plan-card.featured .btn {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .best-value-badge {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gradient);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 14px 0 rgba(14, 165, 233, 0.4);
+        }
+        
+        .plan-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .plan-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        
+        .price {
+            margin-bottom: 32px;
+        }
+        
+        .price-amount {
+            font-size: 64px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+        
+        .plan-card.featured .price-amount {
+            background: linear-gradient(135deg, #fff 0%, #e0f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .price-period {
+            font-size: 16px;
+            color: var(--text-tertiary);
+        }
+        
+        .annual-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 12px;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin-bottom: 32px;
+            flex-grow: 1;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: var(--text);
+        }
+        
+        .plan-card.featured .feature-item {
+            color: white;
+        }
+        
+        .feature-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+        }
+        
+        .feature-icon.check {
+            color: var(--success);
+        }
+        
+        .feature-icon.x {
+            color: var(--text-tertiary);
+        }
+        
+        .plan-card.featured .feature-icon.check {
+            color: var(--success);
+            filter: brightness(1.5);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--text);
+            background: var(--text);
+            color: white;
+        }
+        
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(14, 165, 233, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(14, 165, 233, 0.5);
+        }
+        
+        /* Comparison Table */
+        .comparison-section {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 60px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        
+        .comparison-section h2 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 20px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        th.center {
+            text-align: center;
+        }
+        
+        td {
+            padding: 24px;
+            font-size: 15px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        td.center {
+            text-align: center;
+        }
+        
+        td:first-child {
+            font-weight: 500;
+        }
+        
+        .check {
+            color: var(--success);
+        }
+        
+        .x {
+            color: var(--text-tertiary);
+        }
+        
+        .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="eyebrow">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Simple Pricing
+            </div>
+            <h1>Invest in your career</h1>
+            <p>Choose the plan that fits your career stage. Upgrade or cancel anytime.</p>
+        </div>
+        
+        <div class="toggle-container">
+            <span class="toggle-label active">Monthly</span>
+            <div class="toggle active">
+                <div class="toggle-knob"></div>
+            </div>
+            <span class="toggle-label">Annual</span>
+            <span class="save-badge">Save 35%</span>
+        </div>
+        
+        <div class="pricing-grid">
+            <!-- FREE Plan -->
+            <div class="plan-card">
+                <div class="plan-name">FREE</div>
+                <div class="plan-description">For casual browsers</div>
+                <div class="price">
+                    <div class="price-amount">$0</div>
+                    <div class="price-period">forever</div>
+                </div>
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        5 applications/month
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Basic job matching
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Application tracking
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Career dashboard
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon x" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        AI CV tailoring
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon x" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Salary benchmarking
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon x" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Promotion alerts
+                    </li>
+                </ul>
+                <a href="#" class="btn btn-outline">Current Plan</a>
+            </div>
+            
+            <!-- PRO Plan -->
+            <div class="plan-card">
+                <div class="plan-name">PRO</div>
+                <div class="plan-description">For active job seekers</div>
+                <div class="price">
+                    <div class="price-amount">$29</div>
+                    <div class="price-period">/month</div>
+                </div>
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Unlimited applications
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        AI CV tailoring
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        AI cover letters
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Auto-apply extension
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Full salary benchmarking
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Quarterly salary reviews
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon x" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Promotion readiness alerts
+                    </li>
+                </ul>
+                <a href="#" class="btn btn-outline">Start PRO Trial</a>
+            </div>
+            
+            <!-- CAREER Plan -->
+            <div class="plan-card featured">
+                <div class="best-value-badge">Best Value</div>
+                <div class="plan-name">CAREER</div>
+                <div class="plan-description">For career growth</div>
+                <div class="price">
+                    <div class="price-amount">$19</div>
+                    <div class="price-period">/month</div>
+                    <div class="annual-note">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        or $149/year
+                    </div>
+                </div>
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Everything in PRO
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Passive job alerts
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Promotion readiness alerts
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Annual career report PDF
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Skill gap analysis
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Market intelligence
+                    </li>
+                    <li class="feature-item">
+                        <svg class="feature-icon check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Negotiation coaching
+                    </li>
+                </ul>
+                <a href="#" class="btn btn-primary">Start $149/year</a>
+            </div>
+        </div>
+        
+        <!-- Comparison Table -->
+        <div class="comparison-section">
+            <h2>Compare Features</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th class="center">FREE</th>
+                        <th class="center">PRO</th>
+                        <th class="center">CAREER</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Applications per month</td>
+                        <td class="center">5</td>
+                        <td class="center highlight">Unlimited</td>
+                        <td class="center highlight">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>AI CV Tailoring</td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center"><span class="check">✓</span></td>
+                        <td class="center"><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Auto-Apply Extension</td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center"><span class="check">✓</span></td>
+                        <td class="center"><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Salary Benchmarking</td>
+                        <td class="center">Teaser</td>
+                        <td class="center"><span class="check">✓</span></td>
+                        <td class="center"><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Promotion Alerts</td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center highlight"><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Passive Job Alerts</td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center highlight"><span class="check">✓</span></td>
+                    </tr>
+                    <tr>
+                        <td>Annual Career Report</td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center"><span class="x">✕</span></td>
+                        <td class="center highlight"><span class="check">✓</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

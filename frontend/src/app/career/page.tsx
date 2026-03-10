@@ -1,313 +1,578 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/auth'
+import { api } from '@/lib/api'
+import { Navbar } from '@/components/Navbar'
+import { Footer } from '@/components/Footer'
 
-export default function CareerPathingPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"analysis" | "goals" | "recommendations">("analysis");
+interface CareerProgress {
+  id: number
+  user_id: number
+  current_company: string
+  current_title: string
+  current_salary: number
+  currency: string
+  seniority_level: string
+  started_at: string
+  location: string
+  next_seniority_level: string
+  months_in_role: number
+  promotions_count: number
+  skills_gained: string[]
+  leadership_projects: number
+  next_salary_review_date: string
+}
+
+interface SalaryPosition {
+  percentile: number
+  is_below_market: boolean
+  underpaid_percentage: number
+  market_avg: number
+  market_top_25: number
+}
+
+interface DashboardData {
+  has_career_tracking: boolean
+  career?: CareerProgress
+  salary_position?: SalaryPosition
+  promotion_ready?: boolean
+  total_growth?: {
+    absolute: number
+    percentage: number
+  }
+  message?: string
+}
+
+export default function CareerDashboard() {
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'salary' | 'progression' | 'goals'>('overview')
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
-      router.push("/login");
-      return;
-    }
-    setToken(storedToken);
-    fetchAnalysis(storedToken);
-  }, [router]);
+    fetchDashboard()
+  }, [])
 
-  const fetchAnalysis = async (authToken: string) => {
+  async function fetchDashboard() {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/career/analysis`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAnalysis(data);
-      }
+      const response = await api.get('/career/dashboard')
+      setData(response.data)
     } catch (error) {
-      console.error("Error fetching career analysis:", error);
+      console.error('Failed to fetch career dashboard:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/");
-  };
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-lg text-slate-600">Analyzing your career path...</div>
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-slate-200 rounded w-1/3"></div>
+            <div className="h-64 bg-slate-200 rounded"></div>
+          </div>
+        </div>
       </div>
-    );
+    )
   }
 
-  if (!analysis) {
+  if (!data?.has_career_tracking) {
     return (
-      <div className="min-h-screen bg-slate-50" style={{
-        backgroundImage: 'linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px)',
-        backgroundSize: '32px 32px'
-      }}>
-        <Navbar token={token} onLogout={handleLogout} />
-        <div className="max-w-4xl mx-auto py-16 px-6 text-center">
-          <h1 className="text-4xl font-bold text-navy-900 mb-4">Complete Your Profile First</h1>
-          <p className="text-lg text-slate-600 mb-8">
-            We need more information to provide personalized career guidance.
+      <div className="min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="max-w-3xl mx-auto px-4 py-12">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <h1 className="text-3xl font-bold text-navy-900 mb-4">Start Your Career Tracking</h1>
+            <p className="text-slate-600 mb-8">
+              Track your career progression, get salary benchmarks, and receive promotion alerts.
+            </p>
+            <button
+              onClick={() => window.location.href = '/onboarding'}
+              className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-8 rounded-xl transition-colors"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const career = data.career!
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-navy-900 mb-2">Career Dashboard</h1>
+          <p className="text-slate-600">Track your progress and plan your next move</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex space-x-2 mb-8 border-b border-slate-200">
+          {[
+            { id: 'overview', label: 'Overview' },
+            { id: 'salary', label: 'Salary Check' },
+            { id: 'progression', label: 'Progression' },
+            { id: 'goals', label: 'Goals' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-6 py-3 font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'text-teal-600 border-b-2 border-teal-600'
+                  : 'text-slate-600 hover:text-navy-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* Current Role Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-xl font-bold text-navy-900 mb-4">Current Role</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Company</p>
+                  <p className="text-lg font-semibold text-navy-900">{career.current_company}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Title</p>
+                  <p className="text-lg font-semibold text-navy-900">{career.current_title}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Salary</p>
+                  <p className="text-lg font-semibold text-navy-900">£{career.current_salary.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Location</p>
+                  <p className="text-lg font-semibold text-navy-900">{career.location}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Started</p>
+                  <p className="text-lg font-semibold text-navy-900">
+                    {new Date(career.started_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Tenure</p>
+                  <p className="text-lg font-semibold text-navy-900">{career.months_in_role} months</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <p className="text-sm text-slate-600 mb-2">Promotions</p>
+                <p className="text-3xl font-bold text-teal-500">{career.promotions_count}</p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <p className="text-sm text-slate-600 mb-2">Skills Gained</p>
+                <p className="text-3xl font-bold text-teal-500">{career.skills_gained.length}</p>
+              </div>
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <p className="text-sm text-slate-600 mb-2">Leadership Projects</p>
+                <p className="text-3xl font-bold text-teal-500">{career.leadership_projects}</p>
+              </div>
+            </div>
+
+            {/* Next Review */}
+            <div className="bg-gradient-to-r from-navy-900 to-navy-800 rounded-2xl shadow-lg p-6 text-white">
+              <h3 className="text-lg font-semibold mb-2">Next Salary Review</h3>
+              <p className="text-2xl font-bold">
+                {career.next_salary_review_date
+                  ? new Date(career.next_salary_review_date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+                  : 'Not scheduled'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Salary Tab */}
+        {activeTab === 'salary' && (
+          <SalaryCheckTab user={user!} />
+        )}
+
+        {/* Progression Tab */}
+        {activeTab === 'progression' && (
+          <ProgressionTab user={user!} career={career} />
+        )}
+
+        {/* Goals Tab */}
+        {activeTab === 'goals' && (
+          <GoalsTab user={user!} />
+        )}
+      </div>
+
+      <Footer />
+    </div>
+  )
+}
+
+// Salary Check Tab Component
+function SalaryCheckTab({ user }: { user: any }) {
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<any>(null)
+
+  useEffect(() => {
+    fetchSalaryCheck()
+  }, [])
+
+  async function fetchSalaryCheck() {
+    try {
+      const response = await api.get('/career/salary-check')
+      setData(response.data)
+    } catch (error) {
+      console.error('Failed to fetch salary check:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="animate-pulse h-64 bg-white rounded-2xl"></div>
+  }
+
+  if (data?.upgrade_required) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-4">🔒</div>
+          <h3 className="text-2xl font-bold text-navy-900 mb-4">Unlock Full Salary Benchmarking</h3>
+          <p className="text-slate-600 mb-6">
+            See how your salary compares to the market, discover similar roles, and know your worth.
           </p>
+          <div className="bg-slate-50 rounded-xl p-6 mb-6">
+            <ul className="text-left space-y-3">
+              <li className="flex items-center">
+                <span className="text-teal-500 mr-2">✅</span>
+                <span className="text-slate-700">Market average comparison</span>
+              </li>
+              <li className="flex items-center">
+                <span className="text-teal-500 mr-2">✅</span>
+                <span className="text-slate-700">Top 25% and top 10% benchmarks</span>
+              </li>
+              <li className="flex items-center">
+                <span className="text-teal-500 mr-2">✅</span>
+                <span className="text-slate-700">Similar higher-paying roles</span>
+              </li>
+              <li className="flex items-center">
+                <span className="text-teal-500 mr-2">✅</span>
+                <span className="text-slate-700">Quarterly salary reviews</span>
+              </li>
+            </ul>
+          </div>
           <button
-            onClick={() => router.push("/profile")}
-            className="px-6 py-3 bg-teal-500 text-white rounded-lg font-semibold hover:bg-teal-600 transition-colors"
+            onClick={() => window.location.href = '/billing/upgrade?plan=career'}
+            className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-8 rounded-xl transition-colors"
           >
-            Complete Profile
+            Unlock for {data.upgrade_price}
           </button>
         </div>
       </div>
-    );
+    )
   }
 
-  const careerLevels = [
-    { level: 1, title: "Junior Engineer", years: "0-2 years", min: 60, max: 90 },
-    { level: 2, title: "Mid-Level Engineer", years: "2-5 years", min: 90, max: 140, active: true },
-    { level: 3, title: "Senior Engineer", years: "5-8 years", min: 140, max: 200 },
-    { level: 4, title: "Staff Engineer", years: "8-12 years", min: 200, max: 300 },
-    { level: 5, title: "Principal Engineer", years: "12+ years", min: 300, max: 500 },
-  ];
-
-  const skillGaps = [
-    { name: "Leadership", priority: "High Priority", priorityColor: "text-red-600", bg: "bg-red-50", progress: 40, gradient: "from-red-500 to-orange-500" },
-    { name: "System Design", priority: "Medium Priority", priorityColor: "text-amber-600", bg: "bg-amber-50", progress: 60, gradient: "from-amber-500 to-orange-500" },
-    { name: "Mentoring", priority: "On Track", priorityColor: "text-teal-600", bg: "bg-teal-50", progress: 80, gradient: "from-teal-500 to-emerald-500" },
-  ];
+  const isBelow = data?.is_below_market
 
   return (
-    <div className="min-h-screen bg-slate-50" style={{
-      backgroundImage: 'linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px)',
-      backgroundSize: '32px 32px'
-    }}>
-      <Navbar token={token} onLogout={handleLogout} />
-
-      <main className="pt-28 pb-16">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Header */}
-          <div className="mb-12">
-            <div className="flex items-center space-x-2 text-xs font-medium tracking-wide text-slate-600 mb-4">
-              <a href="/dashboard" className="text-slate-600 hover:text-navy-900">Dashboard</a>
-              <span>/</span>
-              <span className="text-navy-900">Career Pathing</span>
-            </div>
-            <div className="flex justify-between items-end">
-              <div>
-                <h1 className="text-4xl font-bold text-navy-900 mb-2">Career Pathing</h1>
-                <p className="text-lg text-slate-600">Your personalized roadmap to career growth</p>
-              </div>
-              <div className="flex space-x-3">
-                <button className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 text-navy-900 hover:bg-slate-50 transition-colors">Export Plan</button>
-                <button className="px-5 py-2.5 text-sm font-semibold rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition-colors">Set New Goal</button>
-              </div>
-            </div>
+    <div className="space-y-6">
+      <div className={`rounded-2xl shadow-lg p-8 ${isBelow ? 'bg-gradient-to-r from-red-50 to-orange-50' : 'bg-gradient-to-r from-green-50 to-teal-50'}`}>
+        <h3 className={`text-2xl font-bold mb-4 ${isBelow ? 'text-red-700' : 'text-green-700'}`}>
+          {isBelow ? '⚠️ Below Market Average' : '✅ Competitive Salary'}
+        </h3>
+        
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-white rounded-xl p-6">
+            <p className="text-sm text-slate-600 mb-2">Your Salary</p>
+            <p className="text-3xl font-bold text-navy-900">£{data.current_salary?.toLocaleString()}</p>
           </div>
-
-          {/* Tabs */}
-          <div className="flex space-x-1 p-1.5 rounded-xl mb-10 w-fit bg-white border border-slate-200 shadow-md">
-            <button 
-              onClick={() => setActiveTab("analysis")}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === "analysis" ? "bg-white text-navy-900 shadow-sm" : "text-slate-600 hover:text-navy-900"}`}
-            >
-              Analysis
-            </button>
-            <button 
-              onClick={() => setActiveTab("goals")}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === "goals" ? "bg-white text-navy-900 shadow-sm" : "text-slate-600 hover:text-navy-900"}`}
-            >
-              Goals
-            </button>
-            <button 
-              onClick={() => setActiveTab("recommendations")}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === "recommendations" ? "bg-white text-navy-900 shadow-sm" : "text-slate-600 hover:text-navy-900"}`}
-            >
-              Recommendations
-            </button>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Current Level */}
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h2 className="text-2xl font-semibold text-navy-900 mb-2">Current Level: Mid-Level Engineer</h2>
-                    <p className="text-base text-slate-600">2-5 years experience • $90k-$140k range</p>
-                  </div>
-                  <div className="px-4 py-2 rounded-full text-xs font-medium tracking-wide bg-teal-50 text-teal-600">Level 2 of 5</div>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-slate-600 font-medium">Progress to Senior</span>
-                    <span className="font-semibold text-navy-900">50%</span>
-                  </div>
-                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-500 rounded-full" style={{ width: '50%' }}></div>
-                  </div>
-                </div>
-                
-                <p className="text-sm text-slate-600">You're halfway to Senior level. Focus on leadership and system design skills.</p>
-              </div>
-
-              {/* Career Ladder */}
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8">
-                <h2 className="text-2xl font-semibold text-navy-900 mb-6">Career Ladder</h2>
-                <div className="space-y-3">
-                  {careerLevels.map((level) => (
-                    <div 
-                      key={level.level}
-                      className={`bg-white border border-slate-200 rounded-xl p-5 transition-all hover:translate-x-1 ${level.active ? 'border-teal-500 bg-teal-50' : ''}`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${level.active ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                            {level.level}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-navy-900">{level.title}</h3>
-                            <p className="text-sm text-slate-600">{level.years}</p>
-                            {level.active && <p className="text-xs text-teal-600 font-medium mt-0.5">You are here</p>}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-lg font-semibold ${level.active ? 'text-teal-600' : 'text-navy-900'}`}>${level.min}k-${level.max}k</div>
-                          <div className="text-xs text-slate-600">{level.active ? 'Current range' : level.level < 2 ? 'Base range' : 'Target range'}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Skill Gaps */}
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8">
-                <h2 className="text-2xl font-semibold text-navy-900 mb-6">Skill Gaps to Reach Senior</h2>
-                <div className="space-y-6">
-                  {skillGaps.map((skill) => (
-                    <div key={skill.name}>
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-2 h-2 rounded-full ${skill.progress >= 80 ? 'bg-teal-500' : skill.progress >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}></div>
-                          <span className="font-semibold text-navy-900">{skill.name}</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${skill.bg} ${skill.priorityColor}`}>{skill.priority}</span>
-                          <span className="text-sm font-medium text-navy-900 w-10 text-right">{skill.progress}%</span>
-                        </div>
-                      </div>
-                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full bg-gradient-to-r ${skill.gradient}`} style={{ width: `${skill.progress}%` }}></div>
-                      </div>
-                      <p className="text-sm text-slate-600 mt-2 ml-5">
-                        {skill.name === "Leadership" && "Lead technical discussions and mentor junior engineers"}
-                        {skill.name === "System Design" && "Design scalable, distributed systems"}
-                        {skill.name === "Mentoring" && "Guide and support junior team members"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-8">
-              {/* Next Milestone */}
-              <div className="bg-navy-900 rounded-2xl shadow-xl p-8 text-white">
-                <h2 className="text-2xl font-semibold mb-4">Next Milestone</h2>
-                <h3 className="text-3xl font-bold mb-2">Reach Senior Engineer</h3>
-                <p className="text-lg text-slate-300 mb-6">Timeline: 18-36 months</p>
-                
-                <div className="space-y-3 mb-6">
-                  {[
-                    "Design complex, cross-team systems",
-                    "Become domain go-to person",
-                    "Mentor junior engineers regularly",
-                    "Lead architecture decisions"
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start space-x-3">
-                      <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                        </svg>
-                      </div>
-                      <span className="text-sm text-slate-300">{item}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <button className="w-full py-3 rounded-lg text-sm font-semibold text-white bg-teal-500 hover:bg-teal-600 transition-colors">
-                  Create Action Plan
-                </button>
-              </div>
-
-              {/* Recommended Learning */}
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-8">
-                <h2 className="text-2xl font-semibold text-navy-900 mb-6">Recommended Learning</h2>
-                <div className="space-y-4">
-                  {[
-                    { name: "Leadership Fundamentals", hours: "6 hours", level: "Intermediate", color: "bg-navy-900" },
-                    { name: "System Design Masterclass", hours: "12 hours", level: "Advanced", color: "bg-teal-500" },
-                    { name: "Mentorship Best Practices", hours: "4 hours", level: "Beginner", color: "bg-coral-500" },
-                  ].map((course, i) => (
-                    <div key={i} className="flex items-start space-x-4 p-4 rounded-xl bg-slate-50">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${course.color}`}>
-                        {course.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm text-navy-900">{course.name}</h3>
-                        <p className="text-sm text-slate-600">{course.hours} • {course.level}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="bg-white rounded-xl p-6">
+            <p className="text-sm text-slate-600 mb-2">Market Average</p>
+            <p className={`text-3xl font-bold ${isBelow ? 'text-red-600' : 'text-green-600'}`}>
+              £{data.market_avg?.toLocaleString()}
+            </p>
           </div>
         </div>
-      </main>
+
+        {data.underpaid_percentage && data.underpaid_percentage > 0 && (
+          <div className="bg-white rounded-xl p-6 mb-6">
+            <p className="text-sm text-slate-600 mb-2">You're Underpaid By</p>
+            <p className="text-4xl font-bold text-red-600">{data.underpaid_percentage}%</p>
+            <p className="text-slate-600">
+              That's £{(data.market_avg - data.current_salary).toLocaleString()} per year
+            </p>
+          </div>
+        )}
+
+        {data.percentile && (
+          <div>
+            <p className="text-sm text-slate-600 mb-2">Market Position</p>
+            <div className="bg-white rounded-full h-6 overflow-hidden">
+              <div
+                className="bg-teal-500 h-full transition-all"
+                style={{ width: `${data.percentile}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-slate-600 mt-2">Top {data.percentile}% of earners</p>
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }
 
-// Simple Navbar component for this page
-function Navbar({ token, onLogout }: { token: string | null; onLogout: () => void }) {
-  const router = useRouter();
-  
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-navy-900 flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <span className="text-xl font-bold text-navy-900">JobScale</span>
-        </div>
-        <div className="flex items-center space-x-8">
-          <a href="/dashboard" className="text-sm text-slate-600 hover:text-navy-900 transition-colors">Dashboard</a>
-          <a href="/analytics" className="text-sm text-slate-600 hover:text-navy-900 transition-colors">Analytics</a>
-          <a href="/reviews" className="text-sm text-slate-600 hover:text-navy-900 transition-colors">Reviews</a>
-          <div className="w-px h-6 bg-slate-200"></div>
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold text-sm">JD</div>
-            <span className="text-sm font-medium text-navy-900">John Doe</span>
-          </div>
+// Progression Tab Component
+function ProgressionTab({ user, career }: { user: any; career: CareerProgress }) {
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<any>(null)
+
+  useEffect(() => {
+    fetchProgression()
+  }, [])
+
+  async function fetchProgression() {
+    try {
+      const response = await api.get('/career/progression')
+      setData(response.data)
+    } catch (error) {
+      console.error('Failed to fetch progression:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="animate-pulse h-64 bg-white rounded-2xl"></div>
+  }
+
+  if (data?.upgrade_required) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-4">🎯</div>
+          <h3 className="text-2xl font-bold text-navy-900 mb-4">See Your Promotion Opportunities</h3>
+          <p className="text-slate-600 mb-6">
+            Unlock salary benchmarks for your next level and discover available roles.
+          </p>
+          <button
+            onClick={() => window.location.href = '/billing/upgrade?plan=career'}
+            className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-8 rounded-xl transition-colors"
+          >
+            Upgrade to CAREER
+          </button>
         </div>
       </div>
-    </nav>
-  );
+    )
+  }
+
+  const ready = data?.ready
+  const score = data?.score || 0
+
+  return (
+    <div className="space-y-6">
+      <div className={`rounded-2xl shadow-lg p-8 ${ready ? 'bg-gradient-to-r from-green-50 to-teal-50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'}`}>
+        <h3 className={`text-2xl font-bold mb-4 ${ready ? 'text-green-700' : 'text-blue-700'}`}>
+          {ready ? '🎉 You\'re Ready for Promotion!' : '📈 Building Towards Promotion'}
+        </h3>
+
+        <div className="mb-6">
+          <p className="text-sm text-slate-600 mb-2">Readiness Score</p>
+          <div className="flex items-end space-x-4">
+            <p className="text-5xl font-bold text-navy-900">{score}</p>
+            <p className="text-slate-600 mb-2">out of 100</p>
+          </div>
+          <div className="bg-white rounded-full h-4 mt-4 overflow-hidden">
+            <div
+              className={`h-full transition-all ${ready ? 'bg-green-500' : 'bg-blue-500'}`}
+              style={{ width: `${score}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {ready && data?.market_salary && (
+          <div className="bg-white rounded-xl p-6">
+            <p className="text-sm text-slate-600 mb-2">Market Salary for {career.next_seniority_level}</p>
+            <p className="text-3xl font-bold text-teal-600">£{data.market_salary.toLocaleString()}</p>
+            <p className="text-slate-600">
+              Potential increase: £{(data.market_salary - career.current_salary).toLocaleString()}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Goals Tab Component
+function GoalsTab({ user }: { user: any }) {
+  const [goals, setGoals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [newGoal, setNewGoal] = useState({
+    goal_type: 'promotion',
+    target_title: '',
+    target_salary: '',
+    target_company: '',
+    target_date: '',
+  })
+
+  useEffect(() => {
+    fetchGoals()
+  }, [])
+
+  async function fetchGoals() {
+    try {
+      const response = await api.get('/career/goals')
+      setGoals(response.data)
+    } catch (error) {
+      console.error('Failed to fetch goals:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function createGoal(e: React.FormEvent) {
+    e.preventDefault()
+    try {
+      await api.post('/career/goals', {
+        ...newGoal,
+        target_salary: newGoal.target_salary ? parseInt(newGoal.target_salary) : null,
+      })
+      fetchGoals()
+      setShowForm(false)
+      setNewGoal({ goal_type: 'promotion', target_title: '', target_salary: '', target_company: '', target_date: '' })
+    } catch (error) {
+      console.error('Failed to create goal:', error)
+    }
+  }
+
+  if (loading) {
+    return <div className="animate-pulse h-64 bg-white rounded-2xl"></div>
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-xl font-bold text-navy-900">Career Goals</h3>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+        >
+          {showForm ? 'Cancel' : '+ Add Goal'}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={createGoal} className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Goal Type</label>
+            <select
+              value={newGoal.goal_type}
+              onChange={(e) => setNewGoal({ ...newGoal, goal_type: e.target.value })}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2"
+            >
+              <option value="promotion">Promotion</option>
+              <option value="salary">Salary Increase</option>
+              <option value="skills">Skills Development</option>
+              <option value="company">Dream Company</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Target Title</label>
+            <input
+              type="text"
+              value={newGoal.target_title}
+              onChange={(e) => setNewGoal({ ...newGoal, target_title: e.target.value })}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2"
+              placeholder="e.g., Senior Software Engineer"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Target Salary</label>
+            <input
+              type="number"
+              value={newGoal.target_salary}
+              onChange={(e) => setNewGoal({ ...newGoal, target_salary: e.target.value })}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2"
+              placeholder="e.g., 100000"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Target Date</label>
+            <input
+              type="date"
+              value={newGoal.target_date}
+              onChange={(e) => setNewGoal({ ...newGoal, target_date: e.target.value })}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-lg transition-colors"
+          >
+            Create Goal
+          </button>
+        </form>
+      )}
+
+      <div className="space-y-4">
+        {goals.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <p className="text-slate-600">No goals yet. Add your first career goal!</p>
+          </div>
+        ) : (
+          goals.map((goal) => (
+            <div key={goal.id} className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-sm text-teal-600 font-medium uppercase">{goal.goal_type}</p>
+                  <h4 className="text-lg font-bold text-navy-900">{goal.target_title || 'Career Goal'}</h4>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  goal.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
+                }`}>
+                  {goal.status}
+                </span>
+              </div>
+              {goal.target_salary && (
+                <p className="text-slate-600 mb-2">Target: £{goal.target_salary.toLocaleString()}</p>
+              )}
+              {goal.target_date && (
+                <p className="text-slate-600 mb-4">
+                  Target Date: {new Date(goal.target_date).toLocaleDateString('en-GB')}
+                </p>
+              )}
+              {goal.progress !== undefined && (
+                <div>
+                  <div className="flex justify-between text-sm text-slate-600 mb-2">
+                    <span>Progress</span>
+                    <span>{goal.progress}%</span>
+                  </div>
+                  <div className="bg-slate-200 rounded-full h-2">
+                    <div
+                      className="bg-teal-500 h-full rounded-full transition-all"
+                      style={{ width: `${goal.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
 }

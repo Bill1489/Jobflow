@@ -24,6 +24,15 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     LLM_MODEL: str = "gpt-4-turbo-preview"
     
+    # Email Service (Resend)
+    RESEND_API_KEY: Optional[str] = None
+    FROM_EMAIL: str = "noreply@jobscale.local"
+    FROM_NAME: str = "JobScale"
+    
+    # Stripe Billing
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    
     # Scraping
     PROXY_POOL: Optional[List[str]] = None
     REQUEST_DELAY_MS: int = 1000

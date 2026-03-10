@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Georgia', 'Times New Roman', serif; background: #f5f5f5; padding: 40px 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; font-size: 32px; color: #1e3a5f; margin-bottom: 40px; }
+        .templates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .template-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .preview { height: 450px; overflow: hidden; background: #fafafa; position: relative; padding: 20px; }
+        
+        /* Modern */
+        .modern .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+        .modern .name { font-size: 22px; font-weight: 700; }
+        .modern .contact { font-size: 11px; margin-top: 6px; opacity: 0.95; }
+        .modern .section { margin-bottom: 12px; }
+        .modern .section-title { font-size: 12px; font-weight: 600; color: #667eea; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .modern .content { font-size: 11px; color: #555; line-height: 1.5; }
+        
+        /* Classic */
+        .classic .header { border-bottom: 3px solid #1e3a5f; padding-bottom: 15px; margin-bottom: 15px; }
+        .classic .name { font-size: 24px; font-weight: 700; color: #1e3a5f; }
+        .classic .contact { font-size: 11px; color: #666; margin-top: 5px; }
+        .classic .section { margin-bottom: 12px; }
+        .classic .section-title { font-size: 12px; font-weight: 600; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; border-bottom: 1px solid #e0e0e0; padding-bottom: 4px; }
+        .classic .content { font-size: 11px; color: #444; line-height: 1.5; }
+        
+        /* Minimal */
+        .minimal .header { padding: 10px 0; margin-bottom: 15px; }
+        .minimal .name { font-size: 20px; font-weight: 400; color: #333; letter-spacing: 3px; text-align: center; }
+        .minimal .contact { font-size: 10px; color: #888; margin-top: 6px; text-align: center; }
+        .minimal .section { margin-bottom: 12px; }
+        .minimal .section-title { font-size: 11px; font-weight: 500; color: #333; margin-bottom: 6px; letter-spacing: 1px; }
+        .minimal .content { font-size: 11px; color: #666; line-height: 1.6; }
+        
+        .template-info { padding: 20px; border-top: 1px solid #eee; text-align: center; }
+        .template-name { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .template-desc { font-size: 12px; color: #666; line-height: 1.4; margin-bottom: 12px; }
+        .select-btn { padding: 10px 24px; background: #1e3a5f; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        
+        .badge { position: absolute; top: 10px; right: 10px; background: #10b981; color: white; padding: 4px 10px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+        .badge-new { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Choose Your CV Template</h1>
+        
+        <div class="templates">
+            <!-- Modern -->
+            <div class="template-card modern">
+                <div class="preview">
+                    <div class="header">
+                        <div class="name">Andrew Lucas</div>
+                        <div class="contact">📧 andrew@email.com | 📱 +44 7700 900000</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Professional Summary</div>
+                        <div class="content">Security Analyst with 3+ years protecting financial services and intelligence organizations. Investigate 200+ alerts monthly...</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Experience</div>
+                        <div class="content">
+                            <strong>Security Analyst</strong> | Prevail Partners<br>
+                            • Investigate 25-40 security alerts weekly<br>
+                            • Reduced false positives by 40%
+                        </div>
+                    </div>
+                    <div class="badge">Popular</div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name">Modern</div>
+                    <div class="template-desc">Bold gradient header, clean sections. Perfect for tech and creative roles.</div>
+                    <button class="select-btn">Select Modern</button>
+                </div>
+            </div>
+
+            <!-- Classic -->
+            <div class="template-card classic">
+                <div class="preview">
+                    <div class="header">
+                        <div class="name">Andrew Lucas</div>
+                        <div class="contact">📧 andrew@email.com | 📱 +44 7700 900000 | 📍 London, UK</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Professional Summary</div>
+                        <div class="content">Security Analyst with 3+ years protecting financial services and intelligence organizations. Investigate 200+ alerts monthly...</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Experience</div>
+                        <div class="content">
+                            <strong>Security Analyst</strong> | Prevail Partners<br>
+                            • Investigate 25-40 security alerts weekly<br>
+                            • Reduced false positives by 40%
+                        </div>
+                    </div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name">Classic</div>
+                    <div class="template-desc">Traditional navy accent, professional borders. Ideal for corporate, finance, government.</div>
+                    <button class="select-btn">Select Classic</button>
+                </div>
+            </div>
+
+            <!-- Minimal -->
+            <div class="template-card minimal">
+                <div class="preview">
+                    <div class="header">
+                        <div class="name">ANDREW LUCAS</div>
+                        <div class="contact">andrew@email.com · +44 7700 900000 · London</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">SUMMARY</div>
+                        <div class="content">Security Analyst with 3+ years protecting financial services and intelligence organizations...</div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">EXPERIENCE</div>
+                        <div class="content">
+                            Security Analyst | Prevail Partners<br>
+                            Investigate 25-40 security alerts weekly
+                        </div>
+                    </div>
+                    <div class="badge badge-new">New</div>
+                </div>
+                <div class="template-info">
+                    <div class="template-name">Minimal</div>
+                    <div class="template-desc">Clean typography, generous whitespace. Sophisticated simplicity for senior roles.</div>
+                    <button class="select-btn">Select Minimal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

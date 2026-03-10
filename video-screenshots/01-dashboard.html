@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobScale - Career Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .header {
+            background: #ffffff;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 32px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .logo span {
+            color: #14b8a6;
+        }
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .page-subtitle {
+            color: #64748b;
+            font-size: 16px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+        }
+        .card-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .current-role {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        .field {
+            margin-bottom: 16px;
+        }
+        .field-label {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .field-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .salary-large {
+            font-size: 42px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            padding: 24px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #14b8a6;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+        .next-review {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #ffffff;
+        }
+        .next-review .card-header {
+            color: #94a3b8;
+        }
+        .next-review .review-date {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .next-review .review-label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0;
+        }
+        .tab {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+        .tab.active {
+            color: #14b8a6;
+            border-bottom-color: #14b8a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Job<span>Scale</span></div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">Career Dashboard</h1>
+        <p class="page-subtitle">Track your progress and plan your next move</p>
+
+        <div class="tabs" style="margin-top: 32px;">
+            <button class="tab active">Overview</button>
+            <button class="tab">Salary Check</button>
+            <button class="tab">Progression</button>
+            <button class="tab">Goals</button>
+        </div>
+
+        <div class="grid">
+            <!-- Current Role Card -->
+            <div class="card" style="grid-column: span 2;">
+                <div class="card-header">Current Role</div>
+                <div class="current-role">
+                    <div>
+                        <div class="field">
+                            <div class="field-label">Company</div>
+                            <div class="field-value">Stripe</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Title</div>
+                            <div class="field-value">Software Engineer</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Started</div>
+                            <div class="field-value">March 2025</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="field">
+                            <div class="field-label">Location</div>
+                            <div class="field-value">London, UK</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Seniority</div>
+                            <div class="field-value">Mid-Level</div>
+                        </div>
+                        <div class="field">
+                            <div class="field-label">Tenure</div>
+                            <div class="field-value">18 months</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+                    <div class="field-label">Current Salary</div>
+                    <div class="salary-large">£80,000</div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="card">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Promotions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Skills Gained</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Leadership</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Review Card -->
+            <div class="card next-review">
+                <div class="card-header">Next Salary Review</div>
+                <div class="review-date">March 2026</div>
+                <div class="review-label">Quarterly check-in scheduled</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

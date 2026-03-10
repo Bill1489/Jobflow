@@ -36,6 +36,94 @@ async def get_applications(
     }
 
 
+@router.get("/pending")
+async def get_pending_applications(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get jobs user has pre-approved for extension auto-apply
+    
+    Returns list of applications with status "pending_application"
+    Extension uses this to know which jobs to apply to
+    """
+    applications = db.query(Application).filter(
+        Application.user_id == current_user.id,
+        Application.status == "pending_application"
+    ).order_by(Application.created_at.asc()).all()
+    
+    jobs = []
+    for app in applications:
+        job = db.query(Job).filter(Job.id == app.job_id).first()
+        if job:
+            jobs.append({
+                "id": str(app.id),
+                "job_id": str(job.id),
+                "url": job.external_url,
+                "title": job.title,
+                "company": job.company,
+                "location": job.location,
+                "source": job.source,
+                "match_score": app.match_score
+            })
+    
+    return {
+        "applications": jobs,
+        "total": len(jobs)
+    }
+
+
+@router.get("/pending/check")
+async def check_pre_approval(
+    job_id: Optional[str] = None,
+    url: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Check if a specific job is pre-approved for auto-apply
+    
+    Extension calls this when user visits a job page
+    Returns approved=true only if user selected this job from dashboard
+    """
+    query = db.query(Application).filter(
+        Application.user_id == current_user.id,
+        Application.status == "pending_application"
+    )
+    
+    if job_id:
+        job = db.query(Job).filter(Job.id == job_id).first()
+        if job:
+            query = query.filter(Application.job_id == job.id)
+    
+    if url:
+        # Find job by URL
+        job = db.query(Job).filter(Job.external_url == url).first()
+        if job:
+            query = query.filter(Application.job_id == job.id)
+    
+    application = query.first()
+    
+    if not application:
+        return {
+            "approved": False,
+            "message": "This job has not been pre-approved for application"
+        }
+    
+    job = db.query(Job).filter(Job.id == application.job_id).first()
+    cv = db.query(CV).filter(CV.id == application.cv_id).first() if application.cv_id else None
+    
+    return {
+        "approved": True,
+        "application_id": str(application.id),
+        "status": application.status,
+        "job_title": job.title if job else "Unknown",
+        "company": job.company if job else "Unknown",
+        "resume_url": f"/api/v1/cvs/{cv.id}/export" if cv else None,
+        "cover_letter_url": None  # Add if you have cover letters
+    }
+
+
 @router.post("/start")
 async def start_application(
     job_id: int,
@@ -156,10 +244,18 @@ async def update_application(
 @router.post("/{application_id}/submit")
 async def submit_application(
     application_id: int,
+    status: Optional[str] = "applied",
+    error_message: Optional[str] = None,
+    submitted_at: Optional[datetime] = None,
+    source: Optional[str] = "manual",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Mark application as submitted"""
+    """
+    Mark application as submitted or failed
+    
+    Extension calls this after applying to a job
+    """
     application = db.query(Application).filter(
         Application.id == application_id,
         Application.user_id == current_user.id
@@ -168,16 +264,26 @@ async def submit_application(
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
     
-    application.status = "submitted"
-    application.stage = "applied"
-    application.submitted_at = datetime.utcnow()
+    # Update based on status
+    if status == "applied":
+        application.status = "submitted"
+        application.stage = "applied"
+        application.submitted_at = submitted_at or datetime.utcnow()
+        application.applied_via = source  # "extension" or "manual"
+        application.error_message = None
+    elif status == "failed":
+        application.status = "failed"
+        application.error_message = error_message
+        application.retry_count = (application.retry_count or 0) + 1
     
     db.commit()
     db.refresh(application)
     
     return {
-        "message": "Application marked as submitted",
-        "application": application
+        "success": True,
+        "message": f"Application {status}",
+        "application_id": application_id,
+        "status": application.status
     }
 
 
