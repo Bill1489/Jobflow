@@ -1,10 +1,11 @@
 """
 Application Tracking API Routes
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+from pydantic import BaseModel
 
 from app.database import get_db
 from app.models.application import Application
@@ -12,8 +13,13 @@ from app.models.job import Job
 from app.models.cv import CV
 from app.models.user import User
 from app.api.auth import get_current_user
+from app.tasks.notifications import send_application_confirmation_task
 
-router = APIRouter(prefix="/api/v1/applications", tags=["Applications"])
+router = APIRouter(tags=["Applications"])
+
+
+class StartApplicationRequest(BaseModel):
+    job_id: int
 
 
 @router.get("")
@@ -29,29 +35,46 @@ async def get_applications(
         query = query.filter(Application.status == status)
     
     applications = query.order_by(Application.created_at.desc()).all()
-    
+
+    result = []
+    for app in applications:
+        job = db.query(Job).filter(Job.id == app.job_id).first()
+        result.append({
+            "id": app.id,
+            "job_id": app.job_id,
+            "cv_id": app.cv_id,
+            "status": app.status,
+            "stage": app.stage,
+            "applied_via": app.applied_via,
+            "submitted_at": app.submitted_at.isoformat() if app.submitted_at else None,
+            "created_at": app.created_at.isoformat() if app.created_at else None,
+            "internal_notes": app.internal_notes,
+            "interview_count": app.interview_count,
+            "outcome": app.outcome,
+            "confidence_score": app.confidence_score,
+            "job": {
+                "title": job.title if job else "Unknown",
+                "company": job.company if job else "Unknown",
+                "location": job.location if job else "",
+                "external_url": job.external_url if job else "",
+            } if job else None,
+        })
+
     return {
-        "applications": applications,
-        "total": len(applications)
+        "applications": result,
+        "total": len(result)
     }
 
 
 @router.post("/start")
 async def start_application(
-    job_id: int,
+    body: StartApplicationRequest = Body(...),
     cv_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Start a new application - generates application package
-    
-    Returns:
-    - Application ID
-    - CV download URL
-    - Job URL
-    - Application tips
-    """
+    """Start a new application — returns package with CV export URL and tips."""
+    job_id = body.job_id
     # Get job
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
@@ -97,6 +120,84 @@ async def start_application(
         "application_tips": tips,
         "status": "in_progress"
     }
+
+
+@router.get("/stats/summary")
+async def get_application_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get application statistics"""
+    applications = db.query(Application).filter(Application.user_id == current_user.id).all()
+    stats = {
+        "total": len(applications),
+        "by_status": {},
+        "by_stage": {},
+        "submitted": len([a for a in applications if a.status == "submitted"]),
+        "interviews": len([a for a in applications if a.stage in ["phone_screen", "technical", "onsite"]]),
+        "offers": len([a for a in applications if a.stage == "offer"])
+    }
+    for app in applications:
+        stats["by_status"][app.status] = stats["by_status"].get(app.status, 0) + 1
+        stats["by_stage"][app.stage] = stats["by_stage"].get(app.stage, 0) + 1
+    return stats
+
+
+@router.post("/batch-start")
+async def batch_start_applications(
+    body: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Start applications for multiple jobs at once"""
+    job_ids = body.get("job_ids", [])
+    if not job_ids:
+        raise HTTPException(status_code=400, detail="No jobs selected")
+    cv = db.query(CV).filter(CV.user_id == current_user.id).order_by(CV.created_at.desc()).first()
+    if not cv:
+        raise HTTPException(status_code=400, detail="No CV found. Please create a CV first.")
+    results = []
+    for job_id in job_ids:
+        job = db.query(Job).filter(Job.id == job_id).first()
+        if not job:
+            continue
+        existing = db.query(Application).filter(
+            Application.user_id == current_user.id, Application.job_id == job_id
+        ).first()
+        if existing:
+            results.append({"job_id": job_id, "status": "already_applied", "application_id": existing.id,
+                "job_url": job.external_url, "job_title": job.title, "company": job.company})
+            continue
+        application = Application(user_id=current_user.id, job_id=job_id, cv_id=cv.id,
+            status="ready_to_apply", stage="not_started", applied_via="extension")
+        db.add(application)
+        db.commit()
+        db.refresh(application)
+        results.append({"job_id": job_id, "application_id": application.id, "status": "ready",
+            "job_url": job.external_url, "job_title": job.title, "company": job.company,
+            "cv_download_url": f"/api/v1/cvs/{cv.id}/export",
+            "application_tips": generate_application_tips(job)})
+    return {"applications": results, "total": len(results)}
+
+
+@router.get("/ready-to-apply")
+async def get_ready_to_apply(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get applications ready for auto-apply (used by extension)"""
+    applications = db.query(Application).filter(
+        Application.user_id == current_user.id, Application.status == "ready_to_apply"
+    ).all()
+    results = []
+    for app in applications:
+        job = db.query(Job).filter(Job.id == app.job_id).first()
+        if job:
+            results.append({"application_id": app.id, "job_id": job.id,
+                "job_title": job.title, "company": job.company,
+                "job_url": job.external_url, "source": job.source.name if job.source else "unknown",
+                "cv_download_url": f"/api/v1/cvs/{app.cv_id}/export"})
+    return {"applications": results, "total": len(results)}
 
 
 @router.get("/{application_id}")
@@ -173,6 +274,12 @@ async def submit_application(
     application.submitted_at = datetime.utcnow()
     
     db.commit()
+    try:
+        job = db.query(Job).filter(Job.id == application.job_id).first()
+        if job:
+            send_application_confirmation_task.delay(application.id)
+    except Exception:
+        pass  # Don't fail submission if email fails
     db.refresh(application)
     
     return {
@@ -202,59 +309,46 @@ async def delete_application(
     return {"message": "Application deleted"}
 
 
-@router.get("/stats/summary")
-async def get_application_stats(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get application statistics"""
-    applications = db.query(Application).filter(Application.user_id == current_user.id).all()
-    
-    stats = {
-        "total": len(applications),
-        "by_status": {},
-        "by_stage": {},
-        "submitted": len([a for a in applications if a.status == "submitted"]),
-        "interviews": len([a for a in applications if a.stage in ["phone_screen", "technical", "onsite"]]),
-        "offers": len([a for a in applications if a.stage == "offer"])
-    }
-    
-    # Count by status
-    for app in applications:
-        stats["by_status"][app.status] = stats["by_status"].get(app.status, 0) + 1
-        stats["by_stage"][app.stage] = stats["by_stage"].get(app.stage, 0) + 1
-    
-    return stats
-
-
 def generate_application_tips(job: Job) -> list:
     """Generate application tips based on job source"""
     tips = []
-    
+
+    src_name = ""
+    try:
+        if job.source is not None and getattr(job.source, "name", None):
+            src_name = (job.source.name or "").lower()
+    except Exception:
+        src_name = ""
+
     # Source-specific tips
-    if "linkedin" in (job.source or "").lower():
+    if "linkedin" in src_name:
         tips.extend([
             "LinkedIn Easy Apply: Your profile will be attached automatically",
             "Make sure your LinkedIn profile is up to date",
             "Consider adding a note to the recruiter (2-3 sentences)"
         ])
-    elif "indeed" in (job.source or "").lower():
+    elif "indeed" in src_name:
         tips.extend([
             "Indeed Quick Apply uses your Indeed resume",
             "Upload your tailored CV for better results",
             "Indeed may ask pre-screening questions - be ready"
         ])
-    elif "greenhouse" in (job.source or "").lower():
+    elif "greenhouse" in src_name:
         tips.extend([
             "Greenhouse forms typically ask for LinkedIn profile",
             "They may have custom questions - read carefully",
             "Upload both CV and cover letter if possible"
         ])
-    elif "lever" in (job.source or "").lower():
+    elif "lever" in src_name:
         tips.extend([
             "Lever applications are usually straightforward",
             "They value culture fit - research the company",
             "Include links to portfolio/GitHub if relevant"
+        ])
+    elif "curated" in src_name:
+        tips.extend([
+            "This is a sample listing for trying JobScale — replace with live roles once scrapers are configured",
+            "Use the external link to practice your application flow",
         ])
     else:
         tips.extend([

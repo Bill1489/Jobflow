@@ -19,7 +19,7 @@ from app.services.on_demand_search import OnDemandSearchService
 from app.api.auth import get_current_user
 from app.core.security import verify_password
 
-router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
+router = APIRouter(tags=["Onboarding"])
 
 
 @router.post("/preferences")
@@ -46,19 +46,16 @@ async def submit_preferences(
         "employment_types": ["FULL_TIME"]
     }
     """
-    # Check if preferences already exist
     existing = db.query(UserPreferences).filter_by(
-        user_id=current_user.id,
-        is_active=True
+        user_id=current_user.id
     ).first()
     
     if existing:
-        # Update existing preferences
         for key, value in preferences_data.items():
             if hasattr(existing, key):
                 setattr(existing, key, value)
+        existing.is_active = True
     else:
-        # Create new preferences
         existing = UserPreferences.from_dict(preferences_data, current_user.id)
         db.add(existing)
     
@@ -119,6 +116,29 @@ async def run_job_search(
         "search_duration_ms": result.get("search_duration_ms"),
         "sources_used": result.get("sources_used")
     }
+
+
+@router.get("/jobs")
+async def get_cached_jobs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get user's cached job search results (for extension popup).
+    Returns jobs from the most recent search. Does not run a new search.
+    """
+    cache = (
+        db.query(SearchCache)
+        .filter_by(user_id=current_user.id)
+        .order_by(SearchCache.created_at.desc())
+        .first()
+    )
+    if not cache or not cache.job_ids:
+        return {"jobs": [], "total": 0}
+
+    search_service = OnDemandSearchService(db)
+    jobs = search_service._fetch_jobs_by_ids(cache.job_ids)
+    return {"jobs": jobs, "total": len(jobs)}
 
 
 @router.get("/status")

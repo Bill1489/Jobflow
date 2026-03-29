@@ -8,7 +8,8 @@ Replaces continuous background scraping with just-in-time searches.
 import asyncio
 import time
 from typing import List, Dict, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.models.job import Job, JobSource
@@ -19,6 +20,7 @@ from app.scrapers.apify_indeed import ApifyIndeedScraper
 from app.scrapers.greenhouse import GreenhouseScraper
 from app.scrapers.lever import LeverScraper
 from app.core.config import settings
+from app.services.demo_jobs_seed import ensure_demo_jobs
 
 
 class OnDemandSearchService:
@@ -102,13 +104,38 @@ class OnDemandSearchService:
         search_start = time.time()
         jobs = await self._run_searches(preferences)
         search_duration_ms = int((time.time() - search_start) * 1000)
-        
+
+        # When external scrapers return nothing (no Apify key, no target companies, etc.),
+        # fall back to curated/demo rows already in the database.
+        if not jobs:
+            job_ids = self._fallback_job_ids_from_db(preferences)
+            cache = self._update_cache(
+                user_id=user_id,
+                preferences=preferences,
+                job_ids=job_ids,
+                search_duration_ms=search_duration_ms,
+            )
+            job_objects = self._fetch_jobs_by_ids(job_ids)
+            total_duration_ms = int((time.time() - start_time) * 1000)
+            return {
+                "status": "fallback",
+                "message": "No live scraper results; showing curated matches from the job database.",
+                "jobs": job_objects,
+                "total": len(job_objects),
+                "cache": cache.to_dict(),
+                "search_duration_ms": search_duration_ms,
+                "sources_used": {"curated": len(job_objects)},
+            }
+
         # Deduplicate
         jobs = self._deduplicate_jobs(jobs)
-        
+
+        # Collect source stats before _save_jobs pops _source keys
+        sources_used = self._get_sources_used(jobs)
+
         # Save jobs to database
         job_ids = self._save_jobs(jobs)
-        
+
         # Update cache
         cache = self._update_cache(
             user_id=user_id,
@@ -116,12 +143,12 @@ class OnDemandSearchService:
             job_ids=job_ids,
             search_duration_ms=search_duration_ms
         )
-        
+
         # Fetch full job objects
         job_objects = self._fetch_jobs_by_ids(job_ids)
-        
+
         total_duration_ms = int((time.time() - start_time) * 1000)
-        
+
         return {
             "status": "fresh",
             "message": f"Fresh search completed in {total_duration_ms}ms",
@@ -129,7 +156,7 @@ class OnDemandSearchService:
             "total": len(job_objects),
             "cache": cache.to_dict(),
             "search_duration_ms": search_duration_ms,
-            "sources_used": self._get_sources_used(jobs)
+            "sources_used": sources_used
         }
     
     def _get_cached_search(self, user_id: int, preferences: UserPreferences) -> Optional[SearchCache]:
@@ -382,7 +409,7 @@ class OnDemandSearchService:
         deduplicated = []
         
         # Sort by source priority
-        source_priority = {"linkedin": 0, "greenhouse": 1, "lever": 2}
+        source_priority = {"linkedin": 0, "indeed": 1, "greenhouse": 2, "lever": 3, "curated": 4}
         jobs_sorted = sorted(jobs, key=lambda j: source_priority.get(j.get("_source", ""), 99))
         
         for job in jobs_sorted:
@@ -399,7 +426,28 @@ class OnDemandSearchService:
                     deduplicated.append(job)
         
         return deduplicated
-    
+
+    def _fallback_job_ids_from_db(self, preferences: UserPreferences) -> List[int]:
+        """Prefer DB jobs matching roles; seed demo jobs if the table is empty."""
+        ensure_demo_jobs(self.db)
+
+        q = self.db.query(Job).filter(Job.is_active == True)
+        roles = [r.strip() for r in (preferences.target_roles or []) if r.strip()]
+        if roles:
+            title_conds = [Job.title.ilike(f"%{r}%") for r in roles[:6]]
+            q = q.filter(or_(*title_conds))
+
+        rows = q.order_by(Job.posted_date.desc().nullslast()).limit(50).all()
+        if not rows:
+            rows = (
+                self.db.query(Job)
+                .filter(Job.is_active == True)
+                .order_by(Job.posted_date.desc().nullslast())
+                .limit(50)
+                .all()
+            )
+        return [j.id for j in rows]
+
     def _save_jobs(self, jobs: List[Dict]) -> List[int]:
         """
         Save jobs to database and return IDs.
@@ -410,7 +458,7 @@ class OnDemandSearchService:
         
         # Get or create job sources
         sources = {}
-        for source_name in ["linkedin", "greenhouse", "lever"]:
+        for source_name in ["linkedin", "indeed", "greenhouse", "lever", "curated"]:
             source = self.db.query(JobSource).filter_by(name=source_name).first()
             if not source:
                 source = JobSource(
@@ -420,35 +468,64 @@ class OnDemandSearchService:
                 )
                 self.db.add(source)
                 self.db.commit()
+                self.db.refresh(source)
             sources[source_name] = source
-        
+
+        default_source = sources.get("linkedin") or next(iter(sources.values()))
+
         for job_data in jobs:
             source_name = job_data.pop("_source", "unknown")
-            source_id = sources.get(source_name, sources.get("linkedin")).id
+            src = sources.get(source_name) or default_source
+            source_id = src.id
             
-            job = Job(
-                source_id=source_id,
-                external_id=job_data.get("external_id", ""),
-                external_url=job_data.get("external_url", ""),
-                title=job_data.get("title", ""),
-                company=job_data.get("company", ""),
-                location=job_data.get("location", ""),
-                remote=job_data.get("remote", False),
-                hybrid=job_data.get("hybrid", False),
-                description=job_data.get("description", ""),
-                department=job_data.get("department", ""),
-                seniority=job_data.get("seniority", ""),
-                min_salary=job_data.get("min_salary"),
-                max_salary=job_data.get("max_salary"),
-                scraped_at=datetime.utcnow(),
-                posted_date=job_data.get("posted_date"),
-                is_active=True
-            )
-            
-            self.db.merge(job)
-            self.db.commit()
-            
-            if job.id:
+            posted_raw = job_data.get("posted_date")
+            posted_date = None
+            if posted_raw:
+                if isinstance(posted_raw, str):
+                    try:
+                        posted_date = datetime.fromisoformat(posted_raw.replace("Z", "+00:00"))
+                    except (ValueError, TypeError):
+                        posted_date = None
+                elif isinstance(posted_raw, datetime):
+                    posted_date = posted_raw
+
+            ext_id = job_data.get("external_id", "")
+            existing_job = self.db.query(Job).filter_by(
+                source_id=source_id, external_id=ext_id
+            ).first() if ext_id else None
+
+            if existing_job:
+                existing_job.title = job_data.get("title", existing_job.title)
+                existing_job.company = job_data.get("company", existing_job.company)
+                existing_job.location = job_data.get("location", existing_job.location)
+                existing_job.remote = job_data.get("remote", existing_job.remote)
+                existing_job.external_url = job_data.get("external_url", existing_job.external_url)
+                existing_job.scraped_at = datetime.utcnow()
+                existing_job.is_active = True
+                self.db.commit()
+                job_ids.append(existing_job.id)
+            else:
+                job = Job(
+                    source_id=source_id,
+                    external_id=ext_id,
+                    external_url=job_data.get("external_url", ""),
+                    title=job_data.get("title", ""),
+                    company=job_data.get("company", ""),
+                    location=job_data.get("location", ""),
+                    remote=job_data.get("remote", False),
+                    hybrid=job_data.get("hybrid", False),
+                    description=job_data.get("description", ""),
+                    department=job_data.get("department", ""),
+                    seniority=job_data.get("seniority", ""),
+                    min_salary=job_data.get("min_salary"),
+                    max_salary=job_data.get("max_salary"),
+                    scraped_at=datetime.utcnow(),
+                    posted_date=posted_date,
+                    is_active=True
+                )
+                self.db.add(job)
+                self.db.commit()
+                self.db.refresh(job)
                 job_ids.append(job.id)
         
         return job_ids
@@ -526,14 +603,6 @@ class OnDemandSearchService:
             "posted_date": job.posted_date.isoformat() if job.posted_date else None,
             "source": job.source.name if job.source else "unknown",
         }
-    
-    def _get_sources_used(self, jobs: List[Dict]) -> Dict[str, int]:
-        """Count jobs by source"""
-        sources = {}
-        for job in jobs:
-            source = job.get("_source", "unknown")
-            sources[source] = sources.get(source, 0) + 1
-        return sources
     
     def _get_sources_used(self, jobs: List[Dict]) -> Dict[str, int]:
         """Count jobs by source"""
